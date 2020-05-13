@@ -13,9 +13,17 @@ const setupSearchLayout = () => {
             searchBtn.click();
         }
     });
-}
+};
 
-const fillConfigValues = (near, nojs, dark, url) => {
+const fillConfigValues = () => {
+    // Establish all config value elements
+    const near = document.getElementById("config-near");
+    const noJS = document.getElementById("config-nojs");
+    const dark = document.getElementById("config-dark");
+    const url  = document.getElementById("config-url");
+    const tor  = document.getElementById("config-tor");
+    const getOnly = document.getElementById("config-get-only");
+
     // Request existing config info
     let xhrGET = new XMLHttpRequest();
     xhrGET.open("GET", "/config");
@@ -31,6 +39,8 @@ const fillConfigValues = (near, nojs, dark, url) => {
         near.value = configSettings["near"] ? configSettings["near"] : "";
         nojs.checked = !!configSettings["nojs"];
         dark.checked = !!configSettings["dark"];
+        tor.checked = !!configSettings["tor"];
+        getOnly.checked = !!configSettings["get_only"];
 
         // Addresses the issue of incorrect URL being used behind reverse proxy
         url.value = configSettings["url"] ? configSettings["url"] : "";

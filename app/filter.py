@@ -49,8 +49,9 @@ class Filter:
             input_form['method'] = 'POST'
 
         # Ensure no extra scripts passed through
-        for script in soup('script'):
-            script.decompose()
+        # TODO: Needed for "unusual traffic" page
+        # for script in soup('script'):
+            # script.decompose()
 
         footer = soup.find('div', id='sfooter')
         if footer is not None:

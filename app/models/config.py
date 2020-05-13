@@ -56,6 +56,7 @@ class Config:
         self.lang = 'lang_en'
         self.dark = False
         self.nojs = False
+        self.tor = False
         self.near = ''
 
         for key, value in kwargs.items():

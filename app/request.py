@@ -74,7 +74,7 @@ class Request:
         else:
             return 'unicode-escape'
 
-    def send(self, base_url=SEARCH_URL, query='', return_bytes=False):
+    def send(self, base_url=SEARCH_URL, query='', tor=False, return_bytes=False):
         response_header = []
 
         b_obj = BytesIO()
@@ -82,8 +82,15 @@ class Request:
         crl.setopt(crl.URL, base_url + query)
         crl.setopt(crl.USERAGENT, self.modified_user_agent)
         crl.setopt(crl.WRITEDATA, b_obj)
+        crl.setopt(crl.HTTPHEADER, ["Host: www.google.com"])
         crl.setopt(crl.HEADERFUNCTION, response_header.append)
         crl.setopt(pycurl.FOLLOWLOCATION, 1)
+
+        if tor:
+            crl.setopt(pycurl.PROXY, '0.0.0.0')
+            crl.setopt(pycurl.PROXYPORT, 9050)
+            crl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5_HOSTNAME)
+
         crl.perform()
         crl.close()
 

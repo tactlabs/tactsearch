@@ -17,6 +17,9 @@ export STATIC_FOLDER=$APP_ROOT/static
 
 mkdir -p $STATIC_FOLDER
 
+# TODO: Don't run this without checking for support
+tor &
+
 # Check for regular vs test run
 if [[ $SUBDIR == "test" ]]; then
     pytest -sv

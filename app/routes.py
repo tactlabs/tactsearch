@@ -76,7 +76,7 @@ def search():
 
     content_filter = Filter(mobile, g.user_config, secret_key=app.secret_key)
     full_query = gen_query(q, request_params, content_filter.near, language=g.user_config.lang)
-    get_body = g.user_request.send(query=full_query)
+    get_body = g.user_request.send(query=full_query, tor=g.user_config.tor)
 
     results = content_filter.reskin(get_body)
     formatted_results = content_filter.clean(BeautifulSoup(results, 'html.parser'))
