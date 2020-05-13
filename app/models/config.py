@@ -58,6 +58,7 @@ class Config:
         self.nojs = False
         self.tor = False
         self.near = ''
+        self.get_only = False
 
         for key, value in kwargs.items():
             setattr(self, key, value)

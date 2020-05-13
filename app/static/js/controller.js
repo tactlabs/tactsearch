@@ -37,7 +37,7 @@ const fillConfigValues = () => {
         let configSettings = JSON.parse(xhrGET.responseText);
 
         near.value = configSettings["near"] ? configSettings["near"] : "";
-        nojs.checked = !!configSettings["nojs"];
+        noJS.checked = !!configSettings["nojs"];
         dark.checked = !!configSettings["dark"];
         tor.checked = !!configSettings["tor"];
         getOnly.checked = !!configSettings["get_only"];
@@ -47,7 +47,7 @@ const fillConfigValues = () => {
     };
 
     xhrGET.send();
-}
+};
 
 const setupConfigLayout = () => {
     // Setup whoogle config
@@ -64,13 +64,8 @@ const setupConfigLayout = () => {
         content.classList.toggle("open");
     });
 
-    const near = document.getElementById("config-near");
-    const noJS = document.getElementById("config-nojs");
-    const dark = document.getElementById("config-dark");
-    const url  = document.getElementById("config-url");
-
-    fillConfigValues(near, noJS, dark, url);
-}
+    fillConfigValues();
+};
 
 document.addEventListener("DOMContentLoaded", function() {
     setTimeout(function() {
