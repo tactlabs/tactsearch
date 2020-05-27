@@ -14,6 +14,43 @@ data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAQAAAAnOwc2AAAAD0lEQVR42m
 '''
 
 
+def get_first_link(soup):
+    # Replace hrefs with only the intended destination (no "utm" type tags)
+    for a in soup.find_all('a', href=True):
+        href = a['href'].replace('https://www.google.com', '')
+        
+        result_link = urlparse.urlparse(href)
+        query_link = parse_qs(result_link.query)['q'][0] if '?q=' in href else ''
+
+        # Return the first search result URL
+        if 'url?q=' in href:
+            return filter_link_args(href)
+
+
+def filter_link_args(query_link):
+    parsed_link = urlparse.urlparse(query_link)
+    link_args = parse_qs(parsed_link.query)
+    safe_args = {}
+
+    if len(link_args) == 0 and len(parsed_link) > 0:
+        return query_link
+
+    for arg in link_args.keys():
+        if arg in SKIP_ARGS:
+            continue
+
+        safe_args[arg] = link_args[arg]
+
+    # Remove original link query and replace with filtered args
+    query_link = query_link.replace(parsed_link.query, '')
+    if len(safe_args) > 0:
+        query_link = query_link + urlparse.urlencode(safe_args, doseq=True)
+    else:
+        query_link = query_link.replace('?', '')
+
+    return query_link
+
+
 class Filter:
     def __init__(self, mobile=False, config=None, secret_key=''):
         if config is None:
@@ -22,6 +59,7 @@ class Filter:
         self.near = config['near'] if 'near' in config else ''
         self.dark = config['dark'] if 'dark' in config else False
         self.nojs = config['nojs'] if 'nojs' in config else False
+        self.new_tab = config['new_tab'] if 'new_tab' in config else False
         self.mobile = mobile
         self.secret_key = secret_key
 
@@ -53,9 +91,18 @@ class Filter:
         # for script in soup('script'):
             # script.decompose()
 
+        # Remove google's language/time config
+        st_card = soup.find('div', id='st-card')
+        if st_card:
+            st_card.decompose()
+
         footer = soup.find('div', id='sfooter')
-        if footer is not None:
+        if footer:
             footer.decompose()
+
+        header = soup.find('header')
+        if header:
+            header.decompose()
 
         return soup
 
@@ -75,14 +122,13 @@ class Filter:
             img_src = img['src']
             if img_src.startswith('//'):
                 img_src = 'https:' + img_src
+            elif img_src.startswith(LOGO_URL):
+                # Re-brand with Whoogle logo
+                img['src'] = '/static/img/logo.png'
+                img['style'] = 'height:40px;width:162px'
+                continue
             elif img_src.startswith(GOOG_IMG):
-                # Special rebranding for image search results
-                if img_src.startswith(LOGO_URL):
-                    img['src'] = '/static/img/logo.png'
-                    img['height'] = 40
-                else:
-                    img['src'] = BLANK_B64
-
+                img['src'] = BLANK_B64
                 continue
 
             enc_src = Fernet(self.secret_key).encrypt(img_src.encode())
@@ -115,9 +161,15 @@ class Filter:
 
         # Set up dark mode if active
         if self.dark:
-            soup.find('html')['style'] = 'scrollbar-color: #333 #111;'
+            soup.find('html')['style'] = 'scrollbar-color: #333 #111;color:#fff !important;background:#000 !important'
             for input_element in soup.findAll('input'):
-                input_element['style'] = 'color:#fff;'
+                input_element['style'] = 'color:#fff;background:#000;'
+
+            for span_element in soup.findAll('span'):
+                span_element['style'] = 'color: white;'
+
+            for href_element in soup.findAll('a'):
+                href_element['style'] = 'color: white' if href_element['href'].startswith('/search') else ''
 
     def update_links(self, soup):
         # Replace hrefs with only the intended destination (no "utm" type tags)
@@ -126,11 +178,15 @@ class Filter:
             if '/advanced_search' in href:
                 a.decompose()
                 continue
+            elif self.new_tab:
+                a['target'] = '_blank'
 
             result_link = urlparse.urlparse(href)
             query_link = parse_qs(result_link.query)['q'][0] if '?q=' in href else ''
 
-            if '/search?q=' in href:
+            if query_link.startswith('/'):
+                a['href'] = 'https://google.com' + query_link
+            elif '/search?q=' in href:
                 enc_result = Fernet(self.secret_key).encrypt(query_link.encode())
                 new_search = '/search?q=' + enc_result.decode()
 
@@ -141,32 +197,11 @@ class Filter:
                 a['href'] = new_search
             elif 'url?q=' in href:
                 # Strip unneeded arguments
-                parsed_link = urlparse.urlparse(query_link)
-                link_args = parse_qs(parsed_link.query)
-                safe_args = {}
-
-                if len(link_args) == 0 and len(parsed_link) > 0:
-                    a['href'] = query_link
-                    continue
-
-                for arg in link_args.keys():
-                    if arg in SKIP_ARGS:
-                        continue
-
-                    safe_args[arg] = link_args[arg]
-
-                # Remove original link query and replace with filtered args
-                query_link = query_link.replace(parsed_link.query, '')
-                if len(safe_args) > 0:
-                    query_link = query_link + urlparse.urlencode(safe_args, doseq=True)
-                else:
-                    query_link = query_link.replace('?', '')
-
-                a['href'] = query_link
+                a['href'] = filter_link_args(query_link)
 
                 # Add no-js option
                 if self.nojs:
-                    gen_nojs(soup, query_link, a)
+                    gen_nojs(soup, a['href'], a)
             else:
                 a['href'] = href
 
