@@ -75,7 +75,7 @@ $ whoogle-search --help
 usage: whoogle-search [-h] [--port <port number>] [--host <ip address>] [--debug]
                       [--https-only]
 
-Whoogle Search console runner
+Tact Search console runner
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -98,7 +98,7 @@ pip install -r requirements.txt
 ```
 
 #### systemd Configuration
-After building the virtual environment, you can add the following to `/lib/systemd/system/whoogle.service` to set up a Whoogle Search systemd service:
+After building the virtual environment, you can add the following to `/lib/systemd/system/whoogle.service` to set up a Tact Search systemd service:
 
 ```
 [Unit]
@@ -186,7 +186,7 @@ To filter by a range of time, append ":past <time>" to the end of your search, w
 
 ## Extra Steps
 ### Set Whoogle as your primary search engine
-*Note: If you're using a reverse proxy to run Whoogle Search, make sure the "Root URL" config option on the home page is set to your URL before going through these steps.*
+*Note: If you're using a reverse proxy to run Tact Search, make sure the "Root URL" config option on the home page is set to your URL before going through these steps.*
 
 Update browser settings:
   - Firefox (Desktop)
@@ -222,7 +222,7 @@ Whoogle currently allows a few minor configuration settings, accessible from the
     - Adds a separate link for each search result that will open the webpage without any javascript content served. Can be useful if you're seeking a no-javascript experience on mobile, but otherwise could just be accomplished with a browser plugin.
 
 ### Prevent Downtime (Heroku only)
-Part of the deal with Heroku's free tier is that you're allocated 550 hours/month (meaning it can't stay active 24/7), and the app is temporarily shut down after 30 minutes of inactivity. Once it becomes inactive, any Whoogle searches will still work, but it'll take an extra 10-15 seconds for the app to come back online before displaying the result, which can be frustrating if you're in a hurry.
+Part of the deal with Heroku's free tier is that you're allocated 550 hours/month (meaning it can't stay active 24/7), and the app is temporarily shut down after 30 minutes of inactivity. Once it becomes inactive, any Tact searches will still work, but it'll take an extra 10-15 seconds for the app to come back online before displaying the result, which can be frustrating if you're in a hurry.
 
 A good solution for this is to set up a simple cronjob on any device at your home that is consistently powered on and connected to the internet (in my case, a PiHole worked perfectly). All the device needs to do is fetch app content on a consistent basis to keep the app alive in whatever ~17 hour window you want it on (17 hrs * 31 days = 527, meaning you'd still have 23 leftover hours each month if you searched outside of your target window).
 
@@ -231,7 +231,7 @@ For instance, adding `*/20 7-23 * * * curl https://<your heroku app name>.heroku
 Since the instance is destroyed and rebuilt after inactivity, config settings will be reset once the app enters downtime. If you have configuration settings active that you'd like to keep between periods of downtime (like dark mode for example), you could instead add `*/20 7-23 * * * curl -d "dark=1" -X POST https://<your heroku app name>.herokuapp.com/config > /home/<username>/whoogle-refresh` to keep these settings more or less permanent, and still keep the app from entering downtime when you're using it.
 
 ### HTTPS Enforcement
-Only needed if your setup requires Flask to redirect to HTTPS on its own -- generally this is something that doesn't need to be handled by Whoogle Search.
+Only needed if your setup requires Flask to redirect to HTTPS on its own -- generally this is something that doesn't need to be handled by Tact Search.
 
 - Heroku: Ensure that the `Root URL` configuration on the home page begins with `https://` and not `http://`
 - Docker: Add `--build-arg use_https=1` to your run command
