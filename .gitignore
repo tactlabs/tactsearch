@@ -10,3 +10,7 @@ test/static
 build/
 dist/
 *.egg-info/
+
+app/static/img/.DS_Store
+
+*.DS_Store
